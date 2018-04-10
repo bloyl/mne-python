@@ -669,7 +669,7 @@ def _fit_device_hpi_positions(raw, t_win=None, initial_dev_rrs=None,
             if on > 0]
 
     coil_dev_rrs = np.array([o[0] for o in outs])
-    coil_g = np.array([o[0] for o in outs])
+    coil_g = np.array([o[1] for o in outs])
 
     return coil_dev_rrs, coil_g
 
