@@ -52,6 +52,7 @@ def peak_finder(x0, thresh=None, extrema=1, verbose=None):
     if thresh is None:
         thresh = (np.max(x0) - np.min(x0)) / 4
 
+    print ("---------> %f" % thresh)
     assert extrema in [-1, 1]
 
     if extrema == -1:

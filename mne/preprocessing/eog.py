@@ -98,11 +98,21 @@ def _find_eog_events(eog, event_id, l_freq, h_freq, sampling_rate, first_samp,
 
     temp = filteog - np.mean(filteog)
     n_samples_start = int(sampling_rate * tstart)
+    extrema = -1
     if np.abs(np.max(temp)) > np.abs(np.min(temp)):
-        eog_events, _ = peak_finder(filteog[n_samples_start:], extrema=1)
-    else:
-        eog_events, _ = peak_finder(filteog[n_samples_start:], extrema=-1)
+        extrema = 1
 
+    num = 50
+    robust_max = np.median(sorted(peak_finder(filteog[n_samples_start:],
+                                              extrema=1, thresh=0)[1])[-num:])
+    robust_min = np.median(sorted(peak_finder(filteog[n_samples_start:],
+                                              extrema=-1, thresh=0)[1])[:num])
+
+    # set threshold robustly
+    thresh = (robust_max - robust_min) / 4.
+
+    eog_events, _ = peak_finder(filteog[n_samples_start:], extrema=extrema,
+                                thresh=thresh)
     eog_events += n_samples_start
     n_events = len(eog_events)
     logger.info("Number of EOG events detected : %d" % n_events)
