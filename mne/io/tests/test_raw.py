@@ -10,7 +10,7 @@ from nose.tools import assert_equal, assert_true
 from mne import concatenate_raws
 from mne.datasets import testing
 from mne.io import read_raw_fif
-from mne.utils import _TempDir, logger
+from mne.utils import _TempDir
 
 
 def _test_raw_reader(reader, test_preloading=True, **kwargs):
