@@ -1125,6 +1125,60 @@ def _topo_to_sph(topo):
 
 ###############################################################################
 # Quaternions
+def fit_quaternion_translation(from_pts, to_pts):
+    """Determine rotation (unti quaternion) and translation to align points.
+
+    Parameters
+    ----------
+    from_pts : array, shape = (n, 3)
+            Array with coordinates for one or n points.
+    to_pts : array, shape = (n, 3)
+            Array with coordinates for one or n points.
+
+    Returns
+    -------
+    quat : array, shape (3,)
+        parameters of a unit quaternion.
+    trans : array, shape (3,)
+        translation parameters
+
+    Notes
+    -----
+    A 4x4 transformation matix aligning the supplied points (from -> to) can
+    be made by
+    T = np.eye(4)
+    T[:3, :3] = quat_to_rot(quat)
+    T[:3, 3] = trans
+    """
+    assert from_pts.shape[1] == to_pts.shape[1] == 3
+
+    # Calculate the centroids and subtract
+    from_c, to_c = from_pts.mean(axis=0), to_pts.mean(axis=0)
+    from_ = from_pts - from_c
+    to_ = to_pts - to_c
+
+    # Compute the dot products
+    S = np.dot(from_.T, to_)
+
+    # Compute the magical N matrix
+    N = np.array([[S[0, 0] + S[1, 1] + S[2, 2], 0., 0., 0.],
+                  [S[1, 2] - S[2, 1], S[0, 0] - S[1, 1] - S[2, 2], 0., 0.],
+                  [S[2, 0] - S[0, 2], S[0, 1] + S[1, 0],
+                   -S[0, 0] + S[1, 1] - S[2, 2], 0.],
+                  [S[0, 1] - S[1, 0], S[2, 0] + S[0, 2],
+                   S[1, 2] + S[2, 1], -S[0, 0] - S[1, 1] + S[2, 2]]])
+
+    # Compute the eigenvalues and eigenvectors
+    # Use the eigenvector corresponding to the largest eigenvalue as the
+    # unit quaternion defining the rotation
+    eig_vals, eig_vecs = linalg.eigh(N, overwrite_a=True)
+    which = np.argmax(eig_vals)
+    if eig_vals[which] < 0:
+        raise RuntimeError('No positive eigenvalues. Cannot do the alignment.')
+    quat = eig_vecs[1:, which]
+    trans = to_c - np.dot(quat_to_rot(quat), from_c)
+    return quat, trans
+
 
 def quat_to_rot(quat):
     """Convert a set of quaternions to rotations.

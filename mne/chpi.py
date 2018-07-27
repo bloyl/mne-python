@@ -46,7 +46,7 @@ from .forward import (_magnetic_dipole_field_vec, _create_meg_coils,
                       _concatenate_coils, _read_coil_defs)
 from .cov import make_ad_hoc_cov, compute_whitener
 from .transforms import (apply_trans, invert_transform, _angle_between_quats,
-                         quat_to_rot, rot_to_quat)
+                         quat_to_rot, rot_to_quat, fit_quaternion_translation)
 from .utils import verbose, logger, use_log_level, _check_fname, warn
 
 # Eventually we should add:
@@ -237,6 +237,9 @@ def _calculate_head_pos_ctf(raw, gof_limit=0.98):
 
         # fit quaternion
         this_quat, g = _fit_chpi_quat(this_dev, chpi_locs_head, last_quat)
+        this_quat_2, g_2 = _fit_chpi_quat_2(this_dev, chpi_locs_head, last_quat)
+        print ('%f - %f = %f' % (g, g_2, g_2 - g))
+
         if g < gof_limit:
             raise RuntimeError('Bad coil fit! (g=%7.3f)' % (g,))
 
@@ -421,6 +424,20 @@ def _fit_chpi_quat(coil_dev_rrs, coil_head_rrs, x0):
     x0[3:] *= 10.  # decimeters to get quats and head units close
     x = fmin_cobyla(objective, x0, _unit_quat_constraint,
                     rhobeg=1e-3, rhoend=1e-5, disp=False)
+    result = objective(x)
+    x[3:] /= 10.
+    return x, 1. - result / denom
+
+
+def _fit_chpi_quat_2(coil_dev_rrs, coil_head_rrs, x0):
+    """Fit rotation and translation parameters mappign dev to head."""
+    denom = np.sum((coil_head_rrs - np.mean(coil_head_rrs, axis=0)) ** 2)
+    objective = partial(_chpi_objective, coil_dev_rrs=coil_dev_rrs,
+                        coil_head_rrs=coil_head_rrs)
+
+    q, t = fit_quaternion_translation(coil_dev_rrs, coil_head_rrs)
+    x = np.concatenate((q, t))
+    x[3:] *= 10.  # decimeters to get quats and head units close
     result = objective(x)
     x[3:] /= 10.
     return x, 1. - result / denom
