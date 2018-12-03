@@ -363,10 +363,6 @@ class RawArtemis123(BaseRaw):
                 hpi_g = np.delete(hpi_g, bad_idx, axis=0)
 
                 if pos_fname is not None:
-                    logger.info('No Digitized cHPI locations found.\n' +
-                                'Assuming cHPIs are placed at cardinal ' +
-                                'fiducial locations. (Nasion, LPA, RPA')
-
                     # Digitized HPI points are needed.
                     hpi_head = np.array([d['r']
                                          for d in self.info.get('dig', [])

@@ -448,7 +448,7 @@ def _fit_coil_order_dev_head_trans(dev_pnts, head_pnts):
         (quat_to_rot(best_quat[:3]),
          best_quat[3:][:, np.newaxis]), axis=1)
     dev_head_t = np.concatenate((dev_head_t, [[0, 0, 0, 1.]]))
-    return dev_head_t, best_order
+    return dev_head_t, best_order, best_g
 
 
 @verbose
