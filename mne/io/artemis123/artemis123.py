@@ -354,7 +354,7 @@ class RawArtemis123(BaseRaw):
                 bad_idx = []
                 for i, g in enumerate(hpi_g):
                     msg = 'HPI coil %d - location goodness of fit (%0.3f)'
-                    if g < 0.98:
+                    if g < 0.95:
                         bad_idx.append(i)
                         msg += ' *Removed from coregistration*'
                     logger.info(msg % (i + 1, g))
@@ -391,7 +391,7 @@ class RawArtemis123(BaseRaw):
                                                hpi_dev)
                     for i, r in enumerate(hpi_meg_head):
                         d = {'coord_frame': FIFF.FIFFV_COORD_HEAD,
-                             'ident': i + 5000, 'kind': FIFF.FIFFV_POINT_EXTRA,
+                             'ident': i + 50000, 'kind': FIFF.FIFFV_POINT_EXTRA,
                              'r': r}
                         self.info['dig'].append(d)
 
