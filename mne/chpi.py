@@ -633,6 +633,8 @@ def _fit_device_hpi_positions(raw, t_win=None, initial_dev_rrs=None,
     -------
     coil_dev_rrs : ndarray, shape (n_CHPI, 3)
         Fit locations of each cHPI coil in device coordinates
+    coil_g : ndarray, shape (n_CHPI,)
+        Goodness of Fit of each cHPI coil
     """
     _check_option('too_close', too_close, ['raise', 'warning', 'info'])
     # 0. determine samples to fit.
@@ -677,7 +679,7 @@ def _fit_device_hpi_positions(raw, t_win=None, initial_dev_rrs=None,
 def _calculate_chpi_positions(raw, t_step_min=0.1, t_step_max=10.,
                               t_window=0.2, dist_limit=0.005, gof_limit=0.98,
                               use_distances=True, too_close='raise',
-                              verbose=None):
+                              sig_corr_limit=0.98, verbose=None):
     """Calculate head positions using cHPI coils.
 
     Parameters
@@ -697,6 +699,9 @@ def _calculate_chpi_positions(raw, t_step_min=0.1, t_step_max=10.,
         Minimum goodness of fit to accept.
     use_distances : bool
         use dist_limit to choose 'good' coils based on pairwise distances.
+    sig_corr_limit : float
+        Minimal signal correlation (vs last time window) to trigger new HPI
+        fitting.
     too_close : str
         How to handle HPI positions too close to the sensors,
         can be 'raise', 'warning', or 'info'.
@@ -777,9 +782,10 @@ def _calculate_chpi_positions(raw, t_step_min=0.1, t_step_max=10.,
             flips = np.sign((sin_fit * last['sin_fit']).sum(-1, keepdims=True))
             sin_fit *= flips
             corr = np.corrcoef(sin_fit.ravel(), last['sin_fit'].ravel())[0, 1]
+            print(corr)
             # check to see if we need to continue
             if fit_time - last['fit_time'] <= t_step_max - 1e-7 and \
-                    corr * corr > 0.98:
+                    corr * corr > sig_corr_limit:
                 # don't need to refit data
                 continue
 
@@ -839,6 +845,12 @@ def _calculate_chpi_positions(raw, t_step_min=0.1, t_step_max=10.,
             (quat_to_rot(this_quat[:3]),
              this_quat[3:][:, np.newaxis]), axis=1)
         this_dev_head_t = np.concatenate((this_dev_head_t, [[0, 0, 0, 1.]]))
+
+        if pos_0 is None:
+            print('this_coil_dev_rrs - used\n\t', this_coil_dev_rrs[use_mask])
+            print('hpi_dig_head_rrs - used\n\t', hpi_dig_head_rrs[use_mask])
+            print('this_dev_head_t - 0\n\t', this_dev_head_t)
+
 
         # velocities, in device coords, of HPI coils
         # dt = fit_time - last['fit_time'] #
