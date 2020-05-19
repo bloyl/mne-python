@@ -315,8 +315,8 @@ def _mlab_figure(**kwargs):
     """Create a Mayavi figure using our defaults."""
     fig = _import_mlab().figure(**kwargs)
     # If using modern VTK/Mayavi, improve rendering with FXAA
-    if hasattr(getattr(fig.scene, 'renderer', None), 'use_fxaa'):
-        fig.scene.renderer.use_fxaa = True
+    # if hasattr(getattr(fig.scene, 'renderer', None), 'use_fxaa'):
+    #     fig.scene.renderer.use_fxaa = True
     return fig
 
 

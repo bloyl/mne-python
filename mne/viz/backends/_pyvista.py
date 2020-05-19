@@ -116,6 +116,7 @@ def _enable_aa(figure, plotter):
     # using this for Azure at some point, too.
     if os.getenv('AZURE_CI_WINDOWS', 'false').lower() == 'true':
         return
+    return
     if figure.is_active():
         plotter.enable_anti_aliasing()
         plotter.ren_win.LineSmoothingOn()
