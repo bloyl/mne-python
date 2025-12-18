@@ -1282,22 +1282,25 @@ class CoregistrationUI(HasTraits):
             fnirs=True,
             exclude=(),
         )
-        these_actors = _plot_sensors_3d(
-            self._renderer,
-            self._info,
-            self._to_cf_t,
-            picks=picks,
-            warn_meg=False,
-            head_surf=self._head_geo,
-            units="m",
-            sensor_alpha=sensor_alpha,
-            orient_glyphs=self._orient_glyphs,
-            scale_by_distance=self._scale_by_distance,
-            surf=self._head_geo,
-            check_inside=self._check_inside,
-            nearest=self._nearest,
-            **plot_types,
-        )
+        if picks is not None and len(picks) > 0:
+            these_actors = _plot_sensors_3d(
+                self._renderer,
+                self._info,
+                self._to_cf_t,
+                picks=picks,
+                warn_meg=False,
+                head_surf=self._head_geo,
+                units="m",
+                sensor_alpha=sensor_alpha,
+                orient_glyphs=self._orient_glyphs,
+                scale_by_distance=self._scale_by_distance,
+                surf=self._head_geo,
+                check_inside=self._check_inside,
+                nearest=self._nearest,
+                **plot_types,
+            )
+        else:
+            these_actors = None
         sens_actors = sum((these_actors or {}).values(), list())
         self._update_actor("sensors", sens_actors)
 
